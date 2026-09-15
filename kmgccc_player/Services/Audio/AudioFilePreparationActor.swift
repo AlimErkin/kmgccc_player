@@ -24,6 +24,25 @@ struct AudioPrepRequest: Sendable {
     let libraryPaths: LibraryPaths
     let authorizedSourceRoots: [UUID: AuthorizedSourceRoot]
     let titleForLog: String
+    /// Set only for tracks from an online catalog. When the managed audio file
+    /// is not on disk yet, preparation fetches it from here before resolving.
+    let remoteOrigin: RemoteAudioOrigin?
+
+    init(
+        trackID: UUID,
+        locator: TrackMediaLocator,
+        libraryPaths: LibraryPaths,
+        authorizedSourceRoots: [UUID: AuthorizedSourceRoot],
+        titleForLog: String,
+        remoteOrigin: RemoteAudioOrigin? = nil
+    ) {
+        self.trackID = trackID
+        self.locator = locator
+        self.libraryPaths = libraryPaths
+        self.authorizedSourceRoots = authorizedSourceRoots
+        self.titleForLog = titleForLog
+        self.remoteOrigin = remoteOrigin
+    }
 }
 
 /// Result of off-main audio file preparation.
@@ -86,6 +105,8 @@ actor AudioFilePreparationActor {
         case openFailed(underlying: Error)
         /// The prepare was cancelled (superseded by a newer play request).
         case cancelled
+        /// An online track could not be fetched from its catalog.
+        case remoteFetchFailed(message: String)
     }
 
     /// Probes a physical file on a background executor before a referenced
@@ -120,6 +141,14 @@ actor AudioFilePreparationActor {
             detail: "track=\(request.trackID.uuidString.prefix(8))"
         )
         defer { FirstUseHitchDiagnostics.end(prepToken) }
+
+        if Task.isCancelled { throw PrepError.cancelled }
+
+        // 0. An online track keeps its audio in the managed library like any
+        // other track; it just may not have been downloaded yet. Materialize it
+        // here, on this actor's off-main executor, so everything below — and
+        // every consumer downstream of it — stays the ordinary local path.
+        try await materializeRemoteAudioIfNeeded(request)
 
         if Task.isCancelled { throw PrepError.cancelled }
 
@@ -221,6 +250,44 @@ actor AudioFilePreparationActor {
             )
         }
         return file
+    }
+
+    // MARK: - Online materialization
+
+    /// Downloads an online track's audio into its managed location when the
+    /// file is absent. A track that is already cached costs one stat call.
+    private func materializeRemoteAudioIfNeeded(_ request: AudioPrepRequest) async throws {
+        guard let origin = request.remoteOrigin else { return }
+        guard case let .managed(relativePath) = request.locator,
+              let destination = request.libraryPaths.libraryURL(from: relativePath)
+        else { return }
+
+        if await OnlineMediaCache.shared.isMaterialized(at: destination) { return }
+
+        let token = FirstUseHitchDiagnostics.begin(
+            "OnlineMaterialize",
+            detail: "track=\(request.trackID.uuidString.prefix(8))"
+        )
+        defer { FirstUseHitchDiagnostics.end(token) }
+
+        do {
+            _ = try await OnlineMediaCache.shared.materialize(
+                origin: origin,
+                destination: destination
+            )
+        } catch is CancellationError {
+            throw PrepError.cancelled
+        } catch OnlineMediaError.cancelled {
+            throw PrepError.cancelled
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription
+                ?? error.localizedDescription
+            Log.warning(
+                "[Online] fetch failed for \(request.titleForLog): \(message)",
+                category: .audio
+            )
+            throw PrepError.remoteFetchFailed(message: message)
+        }
     }
 
     // MARK: - Resolution (mirrors Track.resolveFileURL semantics, off-main)

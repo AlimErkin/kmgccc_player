@@ -1086,7 +1086,11 @@ final class AVAudioPlaybackService: AudioPlaybackServiceProtocol {
             locator: track.mediaLocator,
             libraryPaths: LibraryPaths(rootURL: root),
             authorizedSourceRoots: authorizedSourceRootsProvider.snapshot(),
-            titleForLog: track.title
+            titleForLog: track.title,
+            // Nil for every local track, so the prepare path is unchanged for
+            // an ordinary library. Online rows carry the provenance that lets
+            // preparation fetch the audio before opening it.
+            remoteOrigin: track.remoteOrigin
         )
     }
 

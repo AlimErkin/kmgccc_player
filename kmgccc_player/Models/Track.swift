@@ -179,6 +179,26 @@ final class Track {
         }
     }
 
+    // MARK: - Online Catalog Origin
+
+    /// JSON-backed provenance for a track that came from an online catalog.
+    ///
+    /// Present only on rows inside an online library. It is deliberately kept
+    /// apart from `mediaLocator`: the locator keeps describing where the audio
+    /// lives on disk (a managed path inside that library), while this says
+    /// where those bytes are fetched from when the file is not there yet. That
+    /// separation is what lets every existing exhaustive switch over
+    /// `TrackMediaLocator` stay untouched.
+    var remoteOriginData: Data?
+
+    var remoteOrigin: RemoteAudioOrigin? {
+        get { RemoteAudioOriginCoding.decode(remoteOriginData) }
+        set { remoteOriginData = RemoteAudioOriginCoding.encode(newValue) }
+    }
+
+    /// True when playback has to reach the network before this track can start.
+    var isOnlineTrack: Bool { remoteOriginData != nil }
+
     // MARK: - Schema 9 Metadata Layers
 
     /// JSON-backed embedded-tag snapshot mirrored from the sidecar.

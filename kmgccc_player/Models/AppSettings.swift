@@ -571,6 +571,28 @@ public final class AppSettings {
     @ObservationIgnored
     @AppStorage("amllConfigJSON") var amllConfigJSON: String = "{}"
 
+    // MARK: - Online Catalog
+
+    /// Base address of the operator's catalog service, e.g.
+    /// `https://music.example.com`. Empty means online browsing is off.
+    @ObservationIgnored
+    @AppStorage("onlineCatalogBaseURL") var onlineCatalogBaseURL: String = ""
+
+    /// Optional shared token sent as `X-App-Token`. Empty when the service is
+    /// reachable without one (a LAN deployment, typically).
+    @ObservationIgnored
+    @AppStorage("onlineCatalogToken") var onlineCatalogToken: String = ""
+
+    /// How much downloaded online audio to keep, in GiB, before the least
+    /// recently played files are evicted.
+    @ObservationIgnored
+    @AppStorage("onlineMediaCacheBudgetGB") var onlineMediaCacheBudgetGB: Double = 4
+
+    /// Resolved endpoint, or nil when nothing usable is configured.
+    var onlineCatalogEndpoint: CatalogEndpoint? {
+        CatalogEndpoint(rawBaseURL: onlineCatalogBaseURL, token: onlineCatalogToken)
+    }
+
     /// Lyrics font name
     @ObservationIgnored
     @AppStorage("lyricsFontName") var lyricsFontName: String = LyricsFontDefaults.english

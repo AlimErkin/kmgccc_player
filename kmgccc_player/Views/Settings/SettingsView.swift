@@ -85,6 +85,11 @@ struct SettingsView: View {
                     } else {
                         unavailableLibrarySettings
                     }
+                case .online:
+                    // Deliberately not gated on a library session: configuring
+                    // the catalog service and signing in to NetEase are exactly
+                    // what a listener does before they have any library.
+                    OnlineSettingsView()
                 case .data:
                     if hasActiveLibrarySession {
                         DataManagementSettingsView()
