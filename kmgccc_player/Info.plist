@@ -39,9 +39,9 @@
 		</dict>
 	</dict>
 	<key>SUAllowsAutomaticUpdates</key>
-	<true/>
+	<false/>
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<false/>
 	<key>SUFeedURL</key>
 	<string>$(UPDATE_PRIMARY_FEED_URL)</string>
 	<key>SUPublicEDKey</key>
