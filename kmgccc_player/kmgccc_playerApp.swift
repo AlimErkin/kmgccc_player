@@ -204,6 +204,14 @@ struct KmgcccPlayerApp: App {
                 }
                 .keyboardShortcut("o", modifiers: .command)
 
+                Button("在线音乐…") {
+                    Task { @MainActor in
+                        await appSession.setupIfNeeded()
+                        appSession.uiState.isOnlineBrowserPresented = true
+                    }
+                }
+                .keyboardShortcut("o", modifiers: [.command, .shift])
+
                 Button(NSLocalizedString("menu.new_playlist", comment: "New Playlist")) {
                     Task { @MainActor in
                         await appSession.setupIfNeeded()

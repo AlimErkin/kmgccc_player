@@ -48,6 +48,8 @@ flowchart TD
 
 未来远程 catalog 不复用本地 bookmark/locator 伪装网络流。它应使用独立媒体表示、backend 与 playback adapter；当前 session/backend factory 和统一展示模型是预留边界，不包含未实现的远程 API 或行为承诺。
 
+本分支接入的在线曲库遵循这条：来源挂在 `Track.remoteOriginData` 上，locator 仍然只描述磁盘位置，音频由 `OnlineMediaCache` 在 `AudioFilePreparationActor` 里落成资料库中的真实文件后才进入播放图。详见 [在线曲库与网易云](online-catalog.md)。
+
 `PlaybackCoordinator` 不复制播放状态。它在 `refreshPresentation()` 中读取快照，生成新的 `NowPlayingPresentation`，在内容确实变化时通知下游。删除曲目、恢复队列和切换播放顺序也要经过现有 owner——直接从视图修改队列或音频引擎，容易让 Now Playing、歌词和频谱仍停在旧状态。
 
 ### 外部播放
@@ -148,6 +150,7 @@ App 依赖五个外部运行组件，都由 `bootstrap.sh` 构建，产物通过
 
 ## 相关文档
 
+- [在线曲库与网易云](online-catalog.md)
 - [歌词渲染系统](lyric-rendering.md)
 - [色彩系统](color-system.md)
 - [资料库存储](library-storage.md)

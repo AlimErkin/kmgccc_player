@@ -150,6 +150,7 @@ actor NeteaseClient {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let code = json["code"] as? Int
         else { throw NeteaseError.badResponse }
+        try Self.throwIfThrottled(json)
         let message = (json["message"] as? String) ?? ""
 
         switch code {
@@ -346,9 +347,6 @@ actor NeteaseClient {
             authenticated: authenticated,
             session: apiSession
         )
-        if let code = json["code"] as? Int, code == -462 || code == 405 {
-            throw NeteaseError.rateLimited(code)
-        }
         guard let rows = json["data"] as? [[String: Any]],
               let first = rows.first,
               let raw = first["url"] as? String,
@@ -429,7 +427,23 @@ actor NeteaseClient {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw NeteaseError.badResponse
         }
+        try Self.throwIfThrottled(json)
         return json
+    }
+
+    /// NetEase returns -462 (and sometimes 405) when it risk-flags the caller's
+    /// network or account — on the sign-in endpoints too, not only on audio.
+    /// Confirmed live against `/api/login/qrcode/unikey`, where it otherwise
+    /// looked like an unparseable response. It carries a human-readable
+    /// `blockText`; prefer that over our generic wording.
+    private static func throwIfThrottled(_ json: [String: Any]) throws {
+        guard let code = json["code"] as? Int, code == -462 || code == 405 else { return }
+        if let data = json["data"] as? [String: Any],
+           let blockText = data["blockText"] as? String,
+           !blockText.isEmpty {
+            throw NeteaseError.unavailable(blockText)
+        }
+        throw NeteaseError.rateLimited(code)
     }
 
     private func send(_ request: URLRequest, on session: URLSession) async throws -> (Data, HTTPURLResponse) {

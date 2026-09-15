@@ -297,3 +297,21 @@
 "skin.cover_gradient_blur.edge_fill_pixel" = "拉伸";
 "skin.cover_gradient_blur.edge_fill_mirror" = "镜像";
 "skin.cover_gradient_blur.edge_fill_mode" = "右侧填充";
+
+// MARK: - 在线音乐(曲库 / 网易云)
+"online.provider.library" = "曲库";
+"online.provider.netease" = "网易云音乐";
+
+"netease.error.bad_response" = "网易云返回的内容看不懂,稍后再试";
+"netease.error.not_signed_in" = "还没登录网易云";
+"netease.error.rate_limited" = "网易云限流了(code %d)—— 是账号级的临时限制,换个号也没用,等一会儿再放";
+"netease.error.session_expired" = "网易云登录过期了,重新扫码";
+"netease.error.no_audio" = "这首拿不到音源 —— 可能已下架,或者要更高权限的账号";
+"netease.qr.authorized_no_cookie" = "授权成功但没取到登录信息,继续等一下";
+
+"catalog.error.not_configured" = "还没填曲库服务地址";
+"catalog.error.bad_response" = "曲库服务返回的内容看不懂";
+
+"online.media.cancelled" = "已取消";
+"online.media.empty_payload" = "取回来的不是音频 —— 地址可能过期了";
+"online.media.catalog_no_audio" = "后台这首没存音源地址";

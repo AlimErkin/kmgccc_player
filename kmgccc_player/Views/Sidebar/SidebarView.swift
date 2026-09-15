@@ -459,6 +459,13 @@ struct SidebarView: View {
                 finishCrashReportTipPresentation()
             }
         }
+        .sheet(isPresented: Bindable(uiState).isOnlineBrowserPresented) {
+            OnlineBrowserSheet()
+                .environment(settings)
+                .environment(libraryVM)
+                .environment(playbackCoordinator)
+                .environmentObject(themeStore)
+        }
         .sheet(isPresented: $showSettings, onDismiss: {
             FeatureTipPresentationCoordinator.shared.setSuspended(false)
         }) {

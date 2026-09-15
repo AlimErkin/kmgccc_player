@@ -1305,6 +1305,57 @@ final class LibraryViewModel {
         }
     }
 
+    // MARK: - Online Catalog
+
+    /// Brings catalog rows into this library as ordinary tracks, then reloads
+    /// so every existing page shows them.
+    ///
+    /// Lives here rather than in the sheet because the repository is owned by
+    /// this view model: views must not build a second persistence path.
+    @discardableResult
+    func ingestOnlineSongs(_ songs: [OnlineSong]) async -> [Track] {
+        guard !songs.isEmpty else { return [] }
+        let service = OnlineCatalogIngestService(repository: repository, paths: libraryPaths)
+        let tracks = await service.ingest(songs)
+        await reloadLibrary()
+        return tracks
+    }
+
+    /// Same as above, plus collecting the result into a playlist so an imported
+    /// catalog collection stays together instead of dissolving into all-songs.
+    @discardableResult
+    func ingestOnlineSongs(_ songs: [OnlineSong], intoPlaylistNamed name: String) async -> [Track] {
+        guard !songs.isEmpty else { return [] }
+        let service = OnlineCatalogIngestService(repository: repository, paths: libraryPaths)
+        let tracks = await service.ingest(songs)
+
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty, !tracks.isEmpty {
+            do {
+                // Reuse an existing playlist of the same name so re-importing a
+                // collection refreshes it instead of piling up duplicates.
+                let existing = await repository.fetchPlaylists().first { $0.name == trimmed }
+                // `??` takes an autoclosure, which cannot carry an await.
+                let playlist: Playlist
+                if let existing {
+                    playlist = existing
+                } else {
+                    playlist = try await repository.createPlaylist(name: trimmed)
+                }
+                try await repository.replacePlaylistTracks(
+                    tracks,
+                    in: playlist,
+                    itemAddedAt: [:]
+                )
+            } catch {
+                Log.error("[Online] playlist import failed: \(error)", category: .library)
+            }
+        }
+
+        await reloadLibrary()
+        return tracks
+    }
+
     func importToCurrentContext(contentMode: ContentMode) async {
         let clickTimestamp = Date()
         let selection = importSelection(for: contentMode)

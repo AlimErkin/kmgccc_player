@@ -104,6 +104,11 @@ final class UIStateViewModel {
     /// (e.g. batch editor preview) is actively displayed.
     var lyricsPanelSuppressedByModal: Bool = false
 
+    /// Drives the online browser modal. Lives here rather than in a view so the
+    /// File-menu command can open it — the menu is in the App scene, while the
+    /// sheet host is the sidebar (same arrangement Settings already uses).
+    var isOnlineBrowserPresented: Bool = false
+
     /// Replaces the window lyrics inspector content with the current playback queue.
     /// This is intentionally transient and not persisted across launches.
     var isWindowPlaybackQueueVisible: Bool = false {
