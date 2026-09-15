@@ -60,6 +60,7 @@
 		C04000000000000000000006 /* kmgccc_player/Services/Audio/AudioLocatorResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04000000000000000000016 /* kmgccc_player/Services/Audio/AudioLocatorResolution.swift */; };
 		C04000000000000000000007 /* kmgccc_player/Models/TrackPreferenceStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04000000000000000000017 /* kmgccc_player/Models/TrackPreferenceStats.swift */; };
 		C04000000000000000000008 /* kmgccc_player/Services/Library/LibrarySidecars.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04000000000000000000018 /* kmgccc_player/Services/Library/LibrarySidecars.swift */; };
+		C04000000000000000000009 /* kmgccc_player/Services/Online/OnlineCatalogModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04000000000000000000019 /* kmgccc_player/Services/Online/OnlineCatalogModels.swift */; };
 		C05000000000000000000001 /* kmgccc_playerTests/LocatorPersistenceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05000000000000000000011 /* kmgccc_playerTests/LocatorPersistenceIntegrationTests.swift */; };
 		C06000000000000000000001 /* kmgccc_playerTests/ReferencedNCMConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06000000000000000000011 /* kmgccc_playerTests/ReferencedNCMConversionTests.swift */; };
 		C07000000000000000000001 /* kmgccc_playerTests/ReferencedSourceReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C07000000000000000000011 /* kmgccc_playerTests/ReferencedSourceReconcilerTests.swift */; };
@@ -156,6 +157,7 @@
 		C04000000000000000000016 /* kmgccc_player/Services/Audio/AudioLocatorResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_player/Services/Audio/AudioLocatorResolution.swift; sourceTree = "<group>"; };
 		C04000000000000000000017 /* kmgccc_player/Models/TrackPreferenceStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_player/Models/TrackPreferenceStats.swift; sourceTree = "<group>"; };
 		C04000000000000000000018 /* kmgccc_player/Services/Library/LibrarySidecars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_player/Services/Library/LibrarySidecars.swift; sourceTree = "<group>"; };
+		C04000000000000000000019 /* kmgccc_player/Services/Online/OnlineCatalogModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_player/Services/Online/OnlineCatalogModels.swift; sourceTree = "<group>"; };
 		C05000000000000000000011 /* kmgccc_playerTests/LocatorPersistenceIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_playerTests/LocatorPersistenceIntegrationTests.swift; sourceTree = "<group>"; };
 		C06000000000000000000011 /* kmgccc_playerTests/ReferencedNCMConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_playerTests/ReferencedNCMConversionTests.swift; sourceTree = "<group>"; };
 		C07000000000000000000011 /* kmgccc_playerTests/ReferencedSourceReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = kmgccc_playerTests/ReferencedSourceReconcilerTests.swift; sourceTree = "<group>"; };
@@ -388,6 +390,7 @@
 				C04000000000000000000016 /* kmgccc_player/Services/Audio/AudioLocatorResolution.swift */,
 				C04000000000000000000017 /* kmgccc_player/Models/TrackPreferenceStats.swift */,
 				C04000000000000000000018 /* kmgccc_player/Services/Library/LibrarySidecars.swift */,
+				C04000000000000000000019 /* kmgccc_player/Services/Online/OnlineCatalogModels.swift */,
 				C05000000000000000000011 /* kmgccc_playerTests/LocatorPersistenceIntegrationTests.swift */,
 				C06000000000000000000011 /* kmgccc_playerTests/ReferencedNCMConversionTests.swift */,
 				C07000000000000000000011 /* kmgccc_playerTests/ReferencedSourceReconcilerTests.swift */,
@@ -723,6 +726,7 @@
 				C04000000000000000000006 /* kmgccc_player/Services/Audio/AudioLocatorResolution.swift in Sources */,
 				C04000000000000000000007 /* kmgccc_player/Models/TrackPreferenceStats.swift in Sources */,
 				C04000000000000000000008 /* kmgccc_player/Services/Library/LibrarySidecars.swift in Sources */,
+				C04000000000000000000009 /* kmgccc_player/Services/Online/OnlineCatalogModels.swift in Sources */,
 				C05000000000000000000001 /* kmgccc_playerTests/LocatorPersistenceIntegrationTests.swift in Sources */,
 				C06000000000000000000001 /* kmgccc_playerTests/ReferencedNCMConversionTests.swift in Sources */,
 				C07000000000000000000001 /* kmgccc_playerTests/ReferencedSourceReconcilerTests.swift in Sources */,

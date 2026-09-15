@@ -1212,9 +1212,15 @@ final class SwiftDataLibraryRepository: LibraryRepositoryProtocol {
         let availability: TrackAvailability
         switch meta.mediaLocator {
         case let .managed(relativePath):
+            // An online track whose audio has not been fetched yet is not a
+            // damaged library: keep it recoverable so playback can still go get
+            // the bytes. See LocalLibraryService.rebuiltAvailability.
             availability = existingManagedAudioPaths.contains(relativePath)
                 ? meta.availability
-                : .missing
+                : LocalLibraryService.rebuiltAvailability(
+                    isAvailable: false,
+                    remoteOrigin: meta.remoteOrigin
+                )
         case .referenced:
             availability = meta.availability
         }
@@ -1259,6 +1265,9 @@ final class SwiftDataLibraryRepository: LibraryRepositoryProtocol {
             audioProperties: meta.audioProperties,
             enrichmentSuggestions: meta.enrichmentSuggestions
         )
+        // Must survive every library load: without it an online track could
+        // never fetch its audio again.
+        track.remoteOrigin = meta.remoteOrigin
 
         track.libraryRootSnapshot = paths.rootURL.path
         track.audioFileName = meta.audioFileName

@@ -37,6 +37,9 @@ nonisolated struct ScannedTrackMeta: Sendable {
     let enrichmentSuggestions: [EnrichmentSuggestion]
     let importProvenance: ImportProvenance?
     let audioProperties: TrackAudioProperties?
+    /// Online-catalog provenance read back from the sidecar. Defaulted so the
+    /// memberwise init stays source-compatible.
+    var remoteOrigin: RemoteAudioOrigin? = nil
     let audioFileName: String
     let artworkFileName: String?
     let lyricsFileName: String?
@@ -128,6 +131,7 @@ nonisolated struct MusicLibraryScanner: Sendable {
             enrichmentSuggestions: sidecar.enrichmentSuggestions ?? [],
             importProvenance: sidecar.importProvenance,
             audioProperties: sidecar.audioProperties,
+            remoteOrigin: sidecar.remoteOrigin,
             audioFileName: audioFileName,
             artworkFileName: resolveArtworkFileName(
                 in: folderURL,

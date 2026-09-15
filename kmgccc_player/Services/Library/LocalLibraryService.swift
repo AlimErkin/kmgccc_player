@@ -126,6 +126,10 @@ nonisolated struct TrackPersistenceSnapshot: Sendable {
     let embeddedMetadataSnapshot: EmbeddedMetadataSnapshot?
     let importProvenance: ImportProvenance?
     let audioProperties: TrackAudioProperties?
+    /// Online-catalog provenance, carried through to the sidecar so a library
+    /// rebuilt from disk can still fetch the audio. Defaulted so every existing
+    /// construction site stays unchanged.
+    var remoteOrigin: RemoteAudioOrigin? = nil
     let enrichmentSuggestions: [EnrichmentSuggestion]?
     let artworkData: Data?
     let ttmlLyricText: String?
@@ -161,6 +165,7 @@ nonisolated struct TrackPersistenceSnapshot: Sendable {
         embeddedMetadataSnapshot = track.embeddedMetadataSnapshot
         importProvenance = track.importProvenance
         audioProperties = track.audioProperties
+        remoteOrigin = track.remoteOrigin
         enrichmentSuggestions = track.enrichmentSuggestions
         artworkData = track.artworkData
         ttmlLyricText = track.ttmlLyricText
@@ -753,7 +758,8 @@ final class LocalLibraryService {
             embeddedMetadataSnapshot: track.embeddedMetadataSnapshot,
             enrichmentSuggestions: track.enrichmentSuggestions,
             importProvenance: track.importProvenance,
-            audioProperties: track.audioProperties
+            audioProperties: track.audioProperties,
+            remoteOrigin: track.remoteOrigin
         )
 
         let data = try encoder.encode(sidecar)
@@ -819,7 +825,8 @@ final class LocalLibraryService {
             embeddedMetadataSnapshot: snapshot.embeddedMetadataSnapshot,
             enrichmentSuggestions: snapshot.enrichmentSuggestions,
             importProvenance: snapshot.importProvenance,
-            audioProperties: snapshot.audioProperties
+            audioProperties: snapshot.audioProperties,
+            remoteOrigin: snapshot.remoteOrigin
         )
 
         let data = try makeJSONEncoder().encode(sidecar)
@@ -2176,6 +2183,19 @@ final class LocalLibraryService {
         }
     }
 
+    /// A managed file that is not on disk normally means the library is
+    /// damaged — `.missing`, which the UI treats as unrecoverable. For an
+    /// online track it means the opposite: nothing is wrong, the audio just has
+    /// not been fetched yet. `.notDownloaded` is the existing recoverable state
+    /// for that, and playback knows how to resolve it.
+    nonisolated static func rebuiltAvailability(
+        isAvailable: Bool,
+        remoteOrigin: RemoteAudioOrigin?
+    ) -> TrackAvailability {
+        if isAvailable { return .available }
+        return remoteOrigin == nil ? .missing : .notDownloaded
+    }
+
     func refreshAvailability(repository: LibraryRepositoryProtocol) async {
         // 1. Refresh Tracks Availability
         let tracks = await repository.fetchTracks(in: nil)
@@ -2184,7 +2204,10 @@ final class LocalLibraryService {
             guard let url = paths.libraryURL(from: libraryRelativePath) else { continue }
             let exists = fileManager.fileExists(atPath: url.path)
 
-            let newAvailability: TrackAvailability = exists ? .available : .missing
+            let newAvailability = Self.rebuiltAvailability(
+                isAvailable: exists,
+                remoteOrigin: track.remoteOrigin
+            )
             let needsImportBackfill = track.importedAt == nil
 
             if track.availability != newAvailability || needsImportBackfill {
@@ -2391,11 +2414,15 @@ final class LocalLibraryService {
                 fileBookmarkData: Data(),
                 originalFilePath: sidecar.originalFilePath ?? "",
                 libraryRelativePath: relativePath,
-                availability: isAvailable ? .available : .missing,
+                availability: Self.rebuiltAvailability(
+                    isAvailable: isAvailable,
+                    remoteOrigin: sidecar.remoteOrigin
+                ),
                 artworkData: nil,
                 ttmlLyricText: nil,
                 lyricsText: nil
             )
+            track.remoteOrigin = sidecar.remoteOrigin
 
             track.libraryRootSnapshot = paths.rootURL.path
             track.audioFileName = audioFileName ?? ""

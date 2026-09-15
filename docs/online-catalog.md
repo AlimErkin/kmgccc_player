@@ -60,6 +60,23 @@ flowchart TD
 
 目录遍历放在 detached task 里：`FileManager` 的枚举器不能在异步上下文里迭代，而且大库不该卡住下一首的启动。
 
+## 来源必须能往返
+
+来源不只存在 SwiftData 里，还要写进 sidecar（`TrackSidecar.remoteOrigin`）。资料库从磁盘重建时，sidecar 是唯一的真相来源——重建出来的在线曲目要是丢了这一条，就再也取不回自己的音频了，而且表现为「有这首歌、点了没反应」，很难查。
+
+所以这条路径上每一站都要带着它：
+
+`Track` → `TrackPersistenceSnapshot` → `TrackSidecar`（写盘）
+`TrackSidecar` → `ScannedTrackMeta` → `Track`（读盘，`LibraryDiskScanner` 的缓存也在这条线上）
+
+## 「文件不在」有两种含义
+
+托管曲目的音频不在磁盘上，通常意味着资料库坏了——`.missing`，界面按不可恢复处理。
+
+对在线曲目恰好相反：什么事都没有，只是还没取。这两种情况共用同一个判断会让每一首没下载过的在线歌都被标成红色警告。
+
+`LocalLibraryService.rebuiltAvailability(isAvailable:remoteOrigin:)` 是这条规则的唯一出处，三个重算可用性的地方都走它：定期刷新、从 sidecar 重建、扫描器建 Track。
+
 ## 歌词
 
 两边的歌词都是 LRC 原文，交给已有的 `LRCConverterService.convertToTTML()` 转成 TTML 后写进 sidecar。原生歌词渲染走的还是原来那条路，没有第二个解析器。
@@ -89,7 +106,14 @@ flowchart TD
 - `Views/Sidebar/SidebarView.swift` — 挂面板（和设置面板同一个宿主）
 - `Views/Settings/SettingsCategory.swift` / `SettingsView.swift` — 设置多一页
 - `kmgccc_playerApp.swift` — 文件菜单多一项
+- `Services/Library/LibrarySidecars.swift` — sidecar 带上 `remoteOrigin`
+- `Services/Library/LocalLibraryService.swift` — 快照带上它；`rebuiltAvailability` 规则
+- `Services/Library/MusicLibraryScanner.swift` — 从 sidecar 读回来
+- `Repositories/SwiftDataLibraryRepository.swift` — 建 Track 时带上，可用性走新规则
 - `Info.plist` — ATS 例外（网易云有些 CDN 还是 http，曲库地址是用户自己填的）
+- `kmgccc_player.xcodeproj` — 测试 target 是**逐个文件列**的（不吃同步目录），
+  它编译的那份 `LibrarySidecars.swift` 要认识 `RemoteAudioOrigin`，
+  所以 `OnlineCatalogModels.swift` 也要挂进那个列表
 
 ## 界面
 

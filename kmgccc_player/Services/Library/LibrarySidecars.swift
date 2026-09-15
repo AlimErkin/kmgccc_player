@@ -350,6 +350,11 @@ nonisolated struct TrackSidecar: Codable, Sendable {
     /// tracks keep these on their locator instead; managed copies have no
     /// location struct, so the root slot carries them.
     let audioProperties: TrackAudioProperties?
+    /// Where an online-catalog track's audio is fetched from. Absent for every
+    /// local track. This MUST round-trip: the sidecar is the source of truth
+    /// when a library is rebuilt from disk, and a rebuilt online track without
+    /// it could never fetch its audio again.
+    let remoteOrigin: RemoteAudioOrigin?
 
     enum CodingKeys: String, CodingKey {
         case schemaVersion, id, title, artist, artistCredits, album, albumArtist, description, genreTags
@@ -361,6 +366,7 @@ nonisolated struct TrackSidecar: Codable, Sendable {
         case embeddedMetadataSnapshot, userMetadataOverride, enrichmentSuggestions
         case importProvenance
         case audioProperties
+        case remoteOrigin
     }
 
     init(
@@ -402,7 +408,8 @@ nonisolated struct TrackSidecar: Codable, Sendable {
         userMetadataOverride: UserMetadataOverride? = nil,
         enrichmentSuggestions: [EnrichmentSuggestion]? = nil,
         importProvenance: ImportProvenance? = nil,
-        audioProperties: TrackAudioProperties? = nil
+        audioProperties: TrackAudioProperties? = nil,
+        remoteOrigin: RemoteAudioOrigin? = nil
     ) {
         self.schemaVersion = schemaVersion
         self.id = id
@@ -445,6 +452,7 @@ nonisolated struct TrackSidecar: Codable, Sendable {
         self.enrichmentSuggestions = enrichmentSuggestions
         self.importProvenance = importProvenance
         self.audioProperties = audioProperties
+        self.remoteOrigin = remoteOrigin
     }
 
     init(from decoder: Decoder) throws {
@@ -528,6 +536,9 @@ nonisolated struct TrackSidecar: Codable, Sendable {
         enrichmentSuggestions = try c.decodeIfPresent([EnrichmentSuggestion].self, forKey: .enrichmentSuggestions) ?? []
         importProvenance = try c.decodeIfPresent(ImportProvenance.self, forKey: .importProvenance)
         audioProperties = try c.decodeIfPresent(TrackAudioProperties.self, forKey: .audioProperties)
+        // decodeIfPresent: v1-v9 payloads written before online sources existed
+        // simply have no key here and decode as a local track.
+        remoteOrigin = try c.decodeIfPresent(RemoteAudioOrigin.self, forKey: .remoteOrigin)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -572,6 +583,7 @@ nonisolated struct TrackSidecar: Codable, Sendable {
         }
         try c.encodeIfPresent(importProvenance, forKey: .importProvenance)
         try c.encodeIfPresent(audioProperties, forKey: .audioProperties)
+        try c.encodeIfPresent(remoteOrigin, forKey: .remoteOrigin)
     }
 }
 
